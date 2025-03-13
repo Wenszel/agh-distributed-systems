@@ -1,24 +1,25 @@
 package org.example;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    public static final int PORT = 8080;
+    public static final int SERVER_PORT = 8080;
+    public static final String SERVER_HOSTNAME = "localhost";
+    public static final String GREETINGS_MESSAGE = "Hello world";
     public static final String STOP = "STOP";
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("TCP server is listening on port: " + PORT);
+        try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
+            System.out.println("TCP server is listening on port: " + SERVER_PORT);
             while (true) {
                 Socket clientSocket = acceptClient(serverSocket);
-                sendToClient(clientSocket, "Hello world from server");
-                String messageFromClient = receiveFromClient(clientSocket);
+                SocketHandler socketHandler = new SocketHandler(clientSocket);
+                socketHandler.send(GREETINGS_MESSAGE);
+                String messageFromClient = socketHandler.receive();
                 if (checkIfStop(messageFromClient)) break;
+                else System.out.println(messageFromClient);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -29,18 +30,6 @@ public class Server {
         Socket clientSocket = serverSocket.accept();
         System.out.println("Client connected");
         return clientSocket;
-    }
-
-    private static void sendToClient(Socket clientSocket, String message) throws IOException {
-        PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
-        printWriter.println(message);
-    }
-
-    private static String receiveFromClient(Socket clientSocket) throws IOException {
-        BufferedReader clientMessagesReader= new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        String message = clientMessagesReader.readLine();
-        System.out.println("received msg: " + message);
-        return message;
     }
 
     private static boolean checkIfStop(String message) {

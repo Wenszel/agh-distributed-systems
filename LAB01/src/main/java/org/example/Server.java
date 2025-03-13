@@ -9,6 +9,8 @@ public class Server {
     public static final int SERVER_PORT = 8080;
     public static final String SERVER_HOSTNAME = "localhost";
     public static final Set<SocketHandler> clientsSockets = new HashSet<>();
+    public static final HashMap<SocketHandler, String> clients = new HashMap<>();
+
     public static final Map<SocketHandler, Thread> clientsThreads = new HashMap<>();
 
     public static void main(String[] args) {
@@ -18,7 +20,8 @@ public class Server {
                 Socket clientSocket = acceptClient(serverSocket);
 
                 SocketHandler socketHandler = new SocketHandler(clientSocket);
-                clientsSockets.add(socketHandler);
+                String username = socketHandler.receive();
+                clients.put(socketHandler, username);
 
                 runChatThreadForClient(socketHandler);
             }
@@ -28,7 +31,7 @@ public class Server {
     }
 
     private static void runChatThreadForClient(SocketHandler socketHandler) {
-        Thread chatThread = new ChatThread(socketHandler, clientsSockets);
+        Thread chatThread = new ChatThread(socketHandler, clients);
         clientsThreads.put(socketHandler, chatThread);
         chatThread.start();
     }

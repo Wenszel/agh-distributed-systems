@@ -1,13 +1,13 @@
 package org.example;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.Map;
 
 public class ChatThread extends Thread {
     private final SocketHandler socketHandler;
-    private final Set<SocketHandler> clients;
+    private final Map<SocketHandler, String> clients;
 
-    public ChatThread(SocketHandler socketHandler, Set<SocketHandler> clients) {
+    public ChatThread(SocketHandler socketHandler, Map<SocketHandler, String> clients) {
         this.socketHandler = socketHandler;
         this.clients = clients;
     }
@@ -26,10 +26,9 @@ public class ChatThread extends Thread {
     }
 
     private void sendToClients(String messageFromClient) {
-        clients.forEach((socketHandler) -> {
+        clients.keySet().forEach((socketHandler) -> {
             try {
-                if (!socketHandler.equals(this.socketHandler))
-                socketHandler.send(messageFromClient);
+                if (!socketHandler.equals(this.socketHandler)) socketHandler.send(clients.get(socketHandler) +  ">> " + messageFromClient);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

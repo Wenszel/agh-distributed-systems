@@ -14,6 +14,7 @@ public class Server {
     public static void main(String[] args) {
         Thread UDPServerThread = new Thread(()-> {
             try (DatagramSocket datagramSocket = new DatagramSocket(SERVER_PORT)) {
+                System.out.println("UDP server is listening on port: " + SERVER_PORT);
                 byte[] receiveBuffer = new byte[1024];
                 Arrays.fill(receiveBuffer, (byte)0);
                 DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);

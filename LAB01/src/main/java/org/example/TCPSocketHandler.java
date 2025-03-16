@@ -6,10 +6,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class SocketHandler {
+public class TCPSocketHandler {
     private final Socket socket;
 
-    public SocketHandler(Socket socket) {
+    public TCPSocketHandler(Socket socket) {
         this.socket = socket;
     }
 

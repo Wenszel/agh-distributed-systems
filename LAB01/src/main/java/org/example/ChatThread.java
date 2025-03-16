@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.Map;
 
 public class ChatThread extends Thread {
-    private final SocketHandler socketHandler;
-    private final Map<SocketHandler, String> clients;
+    private final TCPSocketHandler TCPSocketHandler;
+    private final Map<TCPSocketHandler, String> clients;
 
-    public ChatThread(SocketHandler socketHandler, Map<SocketHandler, String> clients) {
-        this.socketHandler = socketHandler;
+    public ChatThread(TCPSocketHandler TCPSocketHandler, Map<TCPSocketHandler, String> clients) {
+        this.TCPSocketHandler = TCPSocketHandler;
         this.clients = clients;
     }
 
@@ -16,7 +16,7 @@ public class ChatThread extends Thread {
     public void run() {
         while (true) {
             try {
-                String messageFromClient = socketHandler.receive();
+                String messageFromClient = TCPSocketHandler.receive();
                 System.out.println(messageFromClient);
                 sendToClients(messageFromClient);
             } catch (IOException e) {
@@ -26,9 +26,9 @@ public class ChatThread extends Thread {
     }
 
     private void sendToClients(String messageFromClient) {
-        clients.keySet().forEach((socketHandler) -> {
+        clients.keySet().forEach((TCPSocketHandler) -> {
             try {
-                if (!socketHandler.equals(this.socketHandler)) socketHandler.send(clients.get(socketHandler) +  ">> " + messageFromClient);
+                if (!TCPSocketHandler.equals(this.TCPSocketHandler)) TCPSocketHandler.send(clients.get(TCPSocketHandler) +  ">> " + messageFromClient);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

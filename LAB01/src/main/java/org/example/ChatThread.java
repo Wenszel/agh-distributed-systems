@@ -28,7 +28,7 @@ public class ChatThread extends Thread {
     private void sendToClients(String messageFromClient) {
         clients.keySet().forEach((TCPSocketHandler) -> {
             try {
-                if (!TCPSocketHandler.equals(this.TCPSocketHandler)) TCPSocketHandler.send(clients.get(TCPSocketHandler) +  ">> " + messageFromClient);
+                if (!TCPSocketHandler.equals(this.TCPSocketHandler)) TCPSocketHandler.send(clients.get(this.TCPSocketHandler) +  ">> " + messageFromClient);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

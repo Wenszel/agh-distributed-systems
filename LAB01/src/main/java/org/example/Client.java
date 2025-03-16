@@ -34,6 +34,7 @@ public class Client {
             if (message.equals("U")) {
                 System.out.println("Switched to UDP communication");
                 state = SocketState.UDP;
+                continue;
             }
             if (state.equals(SocketState.TCP)) TCPSocketHandler.send(message);
             else {

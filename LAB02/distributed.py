@@ -12,3 +12,10 @@ async def root() :
     # x = requests.get(uri)
     # print(x)
     return {"message" : data}
+
+from fastapi.responses import HTMLResponse
+@app.get("/home", response_class=HTMLResponse)
+async def home() :
+    with open('main.html', 'r') as file:
+        html = file.read()
+    return html

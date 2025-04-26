@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package subscription;
+
+enum EventType {
+  WEATHER = 0;
+  SPORTS = 1;
+  MUSIC = 2;
+}
+
+message SubscriptionRequest {
+  repeated string cities = 1;
+  repeated EventType event_types = 2;
+}
+
+message EventNotification {
+  string city = 1;
+  EventType event_type = 2;
+  string description = 3;
+  repeated string participants = 4;
+  int64 timestamp = 5;
+}
+
+service EventService {
+  rpc Subscribe(SubscriptionRequest) returns (stream EventNotification);
+}
+

@@ -22,13 +22,14 @@ message UnsubscribeRequest {
 message UnsubscribeResponse {
   bool success = 1;
 }
-
+message Participant {
+  string name = 1;
+}
 message EventNotification {
   string city = 1;
   EventType event_type = 2;
-  string description = 3;
-  repeated string participants = 4;
-  int64 timestamp = 5;
+  repeated Participant participants = 3;
+  int64 timestamp = 4;
 }
 
 service EventService {

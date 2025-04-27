@@ -7,29 +7,46 @@ const PROTO_PATH = './subscription.proto';
 const packageDefinition = protoLoader.loadSync(PROTO_PATH);
 const subscriptionProto = grpc.loadPackageDefinition(packageDefinition).subscription;
 
-const client = new subscriptionProto.EventService('localhost:50051', grpc.credentials.createInsecure());
+let client = new subscriptionProto.EventService('localhost:50051', grpc.credentials.createInsecure());
+
+let retryAttempts = 0;  
+const MAX_RETRIES = 5;
 
 const request = {
-    cities: ['Warsaw'],
-    eventTypes: [subscriptionProto.EventType.type.value.number]
+    cities: ['Warszawa'],
+    eventTypes: [2]
 };
 
-const call = client.subscribe(request);
+function performSubscribe(client, request) {
+    const call = client.subscribe(request);
+    
+    call.on('data', notification => {
+        retryAttempts = 0;  
+        console.log('Received event:', notification);
+    });
 
-call.on('data', notification => {
-    console.log('Received event:', notification);
-});
+    call.on('end', () => {
+        console.log('Server ended call');
+    });
 
-call.on('end', () => {
-    console.log('Server ended call');
-});
+    call.on('error', err => {
+        if (err.code === grpc.status.UNAVAILABLE) {
+            console.log("Connection lost, attempting to reconnect...");
+            if (retryAttempts < MAX_RETRIES) {
+                retryAttempts++;
+                setTimeout(() => {
+                    console.log(`Retrying connection... (${retryAttempts}/${MAX_RETRIES})`);
+                    client = new subscriptionProto.EventService('localhost:50051', grpc.credentials.createInsecure());
+                    performSubscribe(client, request);
+                }, 5000);  
+            } else {
+                console.log("Max retries reached, could not reconnect.");
+            }
+        } else {
+            console.error('Error:', err);
+        }
+    });
+}
 
-call.on('error', err => {
-    console.error('Error:', err);
-});
-
-call.on('status', status => {
-    console.log('Status:', status);
-});
-
+performSubscribe(client, request);
 setupCommandListener(client);

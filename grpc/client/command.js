@@ -9,7 +9,7 @@ function setupCommandListener(client) {
     rl.on('line', (input) => {
         const parts = input.trim().split(' ');
 
-        if (parts[0] === 'u') {
+        if (parts[0] === 'u' || parts[1] === 's') {
             const cIndex = parts.indexOf('-c');
             const eIndex = parts.indexOf('-e');
 
@@ -23,9 +23,10 @@ function setupCommandListener(client) {
                 eventTypes = parts[eIndex + 1].split(',').map(Number);
             }
 
-            console.log('Unsubscribing from:', cities, eventTypes);
-            
-            performUnsubscribe(client, cities, eventTypes);
+            if (parts[0] === 'c') {
+                console.log('Unsubscribing from:', cities, eventTypes);
+                performUnsubscribe(client, cities, eventTypes);
+            }
         } else {
             console.log('Unknown command:', input);
         }

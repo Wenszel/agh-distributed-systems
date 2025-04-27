@@ -56,7 +56,7 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
     private void generateAndNotifyEvent() {
         Subscription.EventNotification event = generateEvent();
         System.out.println("Generated event: " + event.getCity() + " " + event.getEventType().getNumber());
-
+        System.out.println(activeSubscriptions);
         for (SubscriptionData subscriptionData : activeSubscriptions.values()) {
             sendEvent(subscriptionData, event);
         }
@@ -84,7 +84,15 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
 
         String city = cities.get(random.nextInt(cities.size()));
         Subscription.EventType eventType = eventTypes.get(random.nextInt(eventTypes.size()));
-        List<String> participants = List.of("John Doe", "Jane Smith", "Max Mustermann");
+
+        List<String> participantNames = List.of("John Doe", "Jane Smith", "Max Mustermann");
+
+        List<Subscription.Participant> participants = new ArrayList<>();
+        for (String name : participantNames) {
+            participants.add(Subscription.Participant.newBuilder()
+                    .setName(name)
+                    .build());
+        }
 
         long timestamp = System.currentTimeMillis();
 

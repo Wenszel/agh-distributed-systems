@@ -10,21 +10,29 @@ import java.util.concurrent.*;
 public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
     private final Map<String, SubscriptionData> activeSubscriptions = new ConcurrentHashMap<>();
     private final ScheduledExecutorService eventGeneratorExecutor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService subscriptionCleanerExecutor = Executors.newSingleThreadScheduledExecutor();
 
     static class SubscriptionData {
         Queue<Subscription.EventNotification> buffer = new ConcurrentLinkedQueue<>();
         Set<String> cities;
         Set<Subscription.EventType> eventTypes;
         volatile StreamObserver<Subscription.EventNotification> observer;
+        volatile long lastActiveTime;
 
         SubscriptionData(Set<String> cities, Set<Subscription.EventType> eventTypes) {
             this.cities = cities;
             this.eventTypes = eventTypes;
+            this.lastActiveTime = System.currentTimeMillis();
+        }
+
+        void updateLastActiveTime() {
+            this.lastActiveTime = System.currentTimeMillis();
         }
     }
 
     public EventServiceImpl() {
         eventGeneratorExecutor.scheduleAtFixedRate(this::generateAndNotifyEvent, 0, 3, TimeUnit.SECONDS);
+        subscriptionCleanerExecutor.scheduleAtFixedRate(this::cleanUpInactiveSubscriptions, 0, 1, TimeUnit.MINUTES);
     }
 
     @Override
@@ -38,6 +46,8 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
         subscriptionData.observer = responseObserver;
 
         activeSubscriptions.put(subscriptionId, subscriptionData);
+
+        System.out.println("New subscription: " + subscriptionId);
     }
 
     @Override
@@ -51,12 +61,14 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
 
         responseObserver.onNext(Subscription.UnsubscribeResponse.newBuilder().setSuccess(true).build());
         responseObserver.onCompleted();
+
+        System.out.println("Unsubscribed: " + subscriptionId);
     }
 
     private void generateAndNotifyEvent() {
         Subscription.EventNotification event = generateEvent();
         System.out.println("Generated event: " + event.getCity() + " " + event.getEventType().getNumber());
-        System.out.println(activeSubscriptions);
+
         for (SubscriptionData subscriptionData : activeSubscriptions.values()) {
             sendEvent(subscriptionData, event);
         }
@@ -67,6 +79,7 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
                 subscriptionData.eventTypes.contains(event.getEventType())) {
             if (subscriptionData.observer != null) {
                 subscriptionData.observer.onNext(event);
+                subscriptionData.updateLastActiveTime();
             } else {
                 subscriptionData.buffer.add(event);
             }
@@ -102,5 +115,23 @@ public class EventServiceImpl extends EventServiceGrpc.EventServiceImplBase {
                 .addAllParticipants(participants)
                 .setTimestamp(timestamp)
                 .build();
+    }
+
+    private void cleanUpInactiveSubscriptions() {
+        long currentTime = System.currentTimeMillis();
+        long inactiveThreshold = 1 * 60 * 1000;
+
+        Iterator<Map.Entry<String, SubscriptionData>> iterator = activeSubscriptions.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, SubscriptionData> entry = iterator.next();
+            SubscriptionData subscriptionData = entry.getValue();
+            if (currentTime - subscriptionData.lastActiveTime > inactiveThreshold) {
+                System.out.println("Cleaning up inactive subscription: " + entry.getKey());
+                iterator.remove();
+                if (subscriptionData.observer != null) {
+                    subscriptionData.observer.onCompleted();
+                }
+            }
+        }
     }
 }

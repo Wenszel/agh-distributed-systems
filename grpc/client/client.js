@@ -1,5 +1,6 @@
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
+const { setupCommandListener } = require('./command');
 
 const PROTO_PATH = './subscription.proto';
 
@@ -30,3 +31,5 @@ call.on('error', err => {
 call.on('status', status => {
     console.log('Status:', status);
 });
+
+setupCommandListener(client);

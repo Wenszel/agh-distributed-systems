@@ -13,6 +13,16 @@ message SubscriptionRequest {
   repeated EventType event_types = 2;
 }
 
+message UnsubscribeRequest {
+  string subscription_id = 1;
+  repeated string cities = 2;
+  repeated EventType event_types = 3;
+}
+
+message UnsubscribeResponse {
+  bool success = 1;
+}
+
 message EventNotification {
   string city = 1;
   EventType event_type = 2;
@@ -23,5 +33,5 @@ message EventNotification {
 
 service EventService {
   rpc Subscribe(SubscriptionRequest) returns (stream EventNotification);
+  rpc Unsubscribe (UnsubscribeRequest) returns (UnsubscribeResponse);
 }
-

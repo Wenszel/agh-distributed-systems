@@ -26,7 +26,6 @@ message UnsubscribeResponse {
 message EventNotification {
   string city = 1;
   EventType event_type = 2;
-  string description = 3;
   repeated string participants = 4;
   int64 timestamp = 5;
 }

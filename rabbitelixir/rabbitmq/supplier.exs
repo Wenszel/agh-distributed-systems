@@ -7,6 +7,7 @@ defmodule Supplier do
         payload = JSON.decode!(payload)
         message = "confirmed:" <> payload["product"]
         AMQP.Basic.publish(channel, "confirmation_exchange", payload["client"], message)
+        AMQP.Basic.publish(channel, "fanout_admin_exchange", "", message)
         handle_orders(channel)
     end
   end

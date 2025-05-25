@@ -15,7 +15,8 @@ defmodule Rabbitmq.MixProject do
   end
   def deps() do
     [
-      {:amqp, "~> 4.0"}
+      {:amqp, "~> 4.0"},
+      {:jason, "~> 1.4"}
     ]
   end
 end

@@ -4,7 +4,9 @@ defmodule Supplier do
       {:basic_deliver, payload, meta} ->
         IO.puts(" [ORDER] #{payload}")
         AMQP.Basic.ack(channel, meta.delivery_tag)
-        AMQP.Basic.publish(channel, "confirmation_exchange", "", "confirmed:" <> payload)
+        payload = JSON.decode!(payload)
+        message = "confirmed:" <> payload["product"]
+        AMQP.Basic.publish(channel, "confirmation_exchange", payload["client"], message)
         handle_orders(channel)
     end
   end
